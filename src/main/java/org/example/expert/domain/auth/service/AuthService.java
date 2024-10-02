@@ -35,10 +35,13 @@ public class AuthService {
 
         UserRole userRole = UserRole.of(signupRequest.getUserRole());
 
+        String nickname = signupRequest.getNickname();
+
         User newUser = new User(
                 signupRequest.getEmail(),
                 encodedPassword,
-                userRole
+                userRole,
+                nickname
         );
         User savedUser = userRepository.save(newUser);
 
