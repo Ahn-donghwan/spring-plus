@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+
 @RestController
 @RequiredArgsConstructor
 public class TodoController {
@@ -30,9 +32,11 @@ public class TodoController {
     @GetMapping("/todos")
     public ResponseEntity<Page<TodoResponse>> getTodos(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        return ResponseEntity.ok(todoService.getTodos(page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "null") Date startDate,
+            @RequestParam(defaultValue = "null") Date endDate
+            ) {
+        return ResponseEntity.ok(todoService.getTodos(page, size, startDate, endDate));
     }
 
     @GetMapping("/todos/{todoId}")
