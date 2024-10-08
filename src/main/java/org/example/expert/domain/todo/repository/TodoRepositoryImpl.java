@@ -1,0 +1,26 @@
+package org.example.expert.domain.todo.repository;
+
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.example.expert.domain.todo.entity.QTodo;
+import org.example.expert.domain.todo.entity.Todo;
+
+import java.util.Optional;
+
+@RequiredArgsConstructor
+public class TodoRepositoryImpl implements TodoRepositoryCustom {
+
+    private final JPAQueryFactory queryFactory;
+
+    @Override
+    public Optional<Todo> findByIdWithUser(Long todoId) {
+        QTodo todo = QTodo.todo;
+
+        Todo result = queryFactory.selectFrom(todo)
+                .leftJoin(todo.user).fetchJoin() // User 엔티티를 fetch join 으로 가져오기
+                .where(todo.id.eq(todoId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+}
