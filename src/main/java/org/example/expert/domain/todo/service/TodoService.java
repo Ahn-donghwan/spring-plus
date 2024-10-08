@@ -52,10 +52,10 @@ public class TodoService {
         );
     }
 
-    public Page<TodoResponse> getTodos(int page, int size, Date startDate, Date endDate) {
+    public Page<TodoResponse> getTodos(int page, int size, String weather, Date startDate, Date endDate) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<Todo> todos = todoRepository.findAllByWeatherByModifiedAtDescBetween(startDate, endDate, pageable);
+        Page<Todo> todos = todoRepository.findTodosByWeatherBetween(weather, startDate, endDate, pageable);
 
         return todos.map(todo -> new TodoResponse(
                 todo.getId(),
