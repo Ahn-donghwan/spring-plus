@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.expert.client.WeatherClient;
 import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.common.exception.InvalidRequestException;
+import org.example.expert.domain.log.service.LogService;
 import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
 import org.example.expert.domain.todo.dto.response.TodoSaveResponse;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.InvalidIsolationLevelException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -30,28 +32,39 @@ public class TodoService {
 
     private final TodoRepository todoRepository;
     private final WeatherClient weatherClient;
+    private final LogService logService;
 
     @Transactional
     public TodoSaveResponse saveTodo(AuthUser authUser, TodoSaveRequest todoSaveRequest) {
         User user = User.fromAuthUser(authUser);
 
-        String weather = weatherClient.getTodayWeather();
+//        String weather = weatherClient.getTodayWeather();
+        String weather = null;
 
-        Todo newTodo = new Todo(
-                todoSaveRequest.getTitle(),
-                todoSaveRequest.getContents(),
-                weather,
-                user
-        );
-        Todo savedTodo = todoRepository.save(newTodo);
+        try {
+            if (weather == null) {
+                throw new InvalidIsolationLevelException("날씨 데이터 오류");
+            }
 
-        return new TodoSaveResponse(
-                savedTodo.getId(),
-                savedTodo.getTitle(),
-                savedTodo.getContents(),
-                weather,
-                new UserResponse(user.getId(), user.getEmail(), user.getNickname())
-        );
+            Todo newTodo = new Todo(
+                    todoSaveRequest.getTitle(),
+                    todoSaveRequest.getContents(),
+                    weather,
+                    user
+            );
+            Todo savedTodo = todoRepository.save(newTodo);
+
+            return new TodoSaveResponse(
+                    savedTodo.getId(),
+                    savedTodo.getTitle(),
+                    savedTodo.getContents(),
+                    weather,
+                    new UserResponse(user.getId(), user.getEmail(), user.getNickname())
+            );
+        } catch (InvalidRequestException e) {
+            logService.saveLog("일정 등록", "FAIL");
+            throw e;
+        }
     }
 
     public Page<TodoSearchResponse> getTodos(int page, int size, String title, String nickname, String weather, LocalDateTime startDate, LocalDateTime endDate) {
