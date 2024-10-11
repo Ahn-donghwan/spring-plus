@@ -10,7 +10,10 @@ import org.example.expert.domain.user.enums.UserRole;
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "users")
+// 1. 닉네임 컬럼 인덱싱
+@Table(name = "users", indexes = {
+        @Index(name = "idx_nickname", columnList = "nickname")
+})
 public class User extends Timestamped {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
